@@ -8,21 +8,23 @@
 import SwiftUI
 
 struct MainView: View {
-    @State private var vm: FoodsterViewModel = FoodsterViewModel()
-    @State private var location: String = "Chapel Hill"
-    
+    @State private var vm: FoodsterViewModel = .init()
+    @State private var location: String = ""
+    @State private var term: String = ""
+    @State private var sortBy: String = "best_match"
+
     var body: some View {
         TabView {
-            FoodsterHomeView()
+            FoodsterHomeView(vm: $vm, location: $location)
                 .tabItem {
                     Label("Home", systemImage: "house")
                 }
-            
-            FoodsterSearchView(vm: $vm, location: $location)
+
+            FoodsterSearchView(vm: $vm, location: $location, term: $term, sortBy: $sortBy)
                 .tabItem {
                     Label("Search", systemImage: "magnifyingglass.circle")
                 }
-            
+
             FoodsterSavedView(vm: $vm)
                 .tabItem {
                     Label("Saved", systemImage: "bookmark")

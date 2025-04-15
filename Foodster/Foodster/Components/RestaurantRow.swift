@@ -27,6 +27,7 @@ struct RestaurantRow: View {
                 Text(restaurant.location.displayAddress.joined(separator: "\n"))
                     .font(.subheadline)
                     .foregroundColor(.secondary)
+                    .multilineTextAlignment(.leading)
                 
                 HStack {
                     Text(String(format: "%.1f", restaurant.rating))

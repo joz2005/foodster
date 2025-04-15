@@ -8,7 +8,179 @@
 import SwiftUI
 
 struct FoodsterHomeView: View {
+    @Binding var vm: FoodsterViewModel
+    @Binding var location: String
+    @State private var showErrorAlert = false
+    
     var body: some View {
-        Text("Home")
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    searchSection
+                    
+                    if vm.isLoading {
+                        loadingSection
+                    } else {
+                        contentSection
+                    }
+                }
+                .padding()
+            }
+            .navigationTitle("Foodster")
+            .alert("Error", isPresented: $showErrorAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(vm.errorMessage ?? "Unknown error occurred")
+            }
+            .task {
+                await loadData()
+            }
+            .refreshable {
+                await loadData()
+            }
+        }
     }
+    
+    private var searchSection: some View {
+        HStack {
+            TextField("Enter location", text: $location)
+                .textFieldStyle(.roundedBorder)
+                .submitLabel(.search)
+                .onSubmit {
+                    Task { await loadData() }
+                }
+            
+            Button(action: { Task { await loadData() } }) {
+                if vm.isLoading {
+                    ProgressView()
+                } else {
+                    Text("Search")
+                }
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(vm.isLoading)
+        }
+    }
+    
+    private var loadingSection: some View {
+        VStack {
+            ProgressView()
+                .padding(.vertical, 30)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 16) {
+                    ForEach(0 ..< 3, id: \.self) { _ in
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.gray.opacity(0.2))
+                            .frame(width: 300, height: 180)
+                    }
+                }
+                .padding(.horizontal)
+            }
+        }
+    }
+    
+    private var contentSection: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            if !vm.popularRestaurants.isEmpty {
+                popularRestaurantsSection
+                    .padding(.bottom, 8)
+            }
+                    
+            if !vm.restaurants.isEmpty {
+                allRestaurantsSection
+                    .padding(.top, 8)
+            } else if !vm.isLoading {
+                emptyStateView
+            }
+        }
+        .padding(.vertical, 8)
+    }
+    
+    private var popularRestaurantsSection: some View {
+        VStack(alignment: .leading) {
+            Text("Popular Nearby")
+                .font(.title2.bold())
+                .padding(.horizontal)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(spacing: 16) {
+                    ForEach(vm.popularRestaurants) { restaurant in
+                        NavigationLink {
+                            RestaurantDetailView(restaurant: restaurant)
+                        } label: {
+                            RestaurantScrollView(restaurant: restaurant)
+                                .foregroundColor(.primary)
+                        }
+                        .buttonStyle(.plain)
+                        .frame(width: 350)
+                    }
+                }
+                .padding(.horizontal)
+            }
+        }
+    }
+    
+    private var allRestaurantsSection: some View {
+        VStack(alignment: .leading) {
+            Text("All Restaurants")
+                .font(.title2.bold())
+                .padding(.horizontal)
+            
+            LazyVStack(alignment: .leading, spacing: 16) {
+                ForEach(vm.restaurants) { restaurant in
+                    NavigationLink {
+                        RestaurantDetailView(restaurant: restaurant)
+                    } label: {
+                        HStack {
+                            RestaurantRow(restaurant: restaurant)
+                            
+                            Spacer()
+                            
+                            Button {
+                                Task {
+                                    await vm.saveRestaurant(restaurant: restaurant)
+                                }
+                            } label: {
+                                Image(systemName: vm.savedRestaurants.contains(where: { $0.id == restaurant.id }) ? "bookmark.fill" : "bookmark")
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .foregroundStyle(.primary)
+                }
+            }
+            .padding(.horizontal, 8)
+        }
+    }
+    
+    private var emptyStateView: some View {
+        ContentUnavailableView(
+            "No restaurants found",
+            systemImage: "fork.knife",
+            description: Text("Try searching in a different location")
+        )
+    }
+    
+    private func loadData() async {
+        do {
+            try await withThrowingTaskGroup(of: Void.self) { group in
+                group.addTask {
+                    await vm.getRestaurants(location: location, term: "", sortBy: "best_match")
+                }
+                group.addTask {
+                    await vm.getPopularRestaurants(location: location)
+                }
+                try await group.waitForAll()
+            }
+        } catch {
+            showErrorAlert = true
+        }
+    }
+}
+
+#Preview {
+    @Previewable @State var vm = FoodsterViewModel()
+    @Previewable @State var location = ""
+    FoodsterHomeView(vm: $vm, location: $location)
 }

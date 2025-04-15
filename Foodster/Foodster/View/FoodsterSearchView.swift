@@ -12,17 +12,21 @@ struct FoodsterSearchView: View {
     // Backend Requests
     @Binding var vm: FoodsterViewModel
     @Binding var location: String
+    @Binding var term: String
+    @Binding var sortBy: String
+    @State private var sortTerm: String = "Best Match"
+    var sortTerms: [String] = ["Best Match", "Review Count", "Distance", "Rating"]
     
     var body: some View {
         NavigationStack {
             VStack {
                 HStack {
-                    TextField("Enter Location", text: $location)
+                    TextField("Search for restaurants", text: $term)
                         .textFieldStyle(.roundedBorder)
                     
                     Button {
                         Task {
-                            await vm.getRestaurants(location: location)
+                            await search()
                         }
                     } label: {
                         if vm.isLoading {
@@ -33,9 +37,48 @@ struct FoodsterSearchView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .disabled(vm.isLoading)
+                    .disabled(location.isEmpty)
+                }
+                .padding([.leading], 10)
+                .padding([.trailing], 10)
+            
+                HStack {
+                    TextField("Enter Location", text: $location)
+                        .textFieldStyle(.roundedBorder)
+                        .task {
+                            Task {
+                                await search()
+                            }
+                        }
+                    
+                    Text("Sort By:")
+                    Picker("Sort By:", selection: $sortTerm) {
+                        ForEach(sortTerms, id: \.self) { term in
+                            Text(term)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .onChange(of: sortTerm) {
+                        switch sortTerm {
+                        case "Best Match":
+                            sortBy = "best_match"
+                        case "Distance":
+                            sortBy = "distance"
+                        case "Review Count":
+                            sortBy = "review_count"
+                        case "Rating":
+                            sortBy = "rating"
+                        default:
+                            break
+                        }
+                        Task {
+                            if !location.isEmpty && !term.isEmpty {
+                                await search()
+                            }
+                        }
+                    }
                 }
                 .padding()
-                
 //                if let error = vm.errorMessage {
 //                    Text(error)
 //                        .foregroundColor(.red)
@@ -62,13 +105,19 @@ struct FoodsterSearchView: View {
                         .buttonStyle(.plain)
                     }
                 }
+                .listStyle(PlainListStyle())
                 .refreshable {
-                    await search()
+                    if !location.isEmpty {
+                        await search()
+                    }
                 }
             }
+            
             .navigationTitle("Foodster")
             .task {
-                await search()
+                if !location.isEmpty {
+                    await search()
+                }
             }
             .overlay {
                 if vm.restaurants.isEmpty {
@@ -79,7 +128,7 @@ struct FoodsterSearchView: View {
     }
     
     private func search() async {
-        await vm.getRestaurants(location: location)
+        await vm.getRestaurants(location: location, term: term, sortBy: sortBy)
     }
 }
 
@@ -87,5 +136,7 @@ struct FoodsterSearchView: View {
 #Preview {
     @Previewable @State var vm: FoodsterViewModel = FoodsterViewModel()
     @Previewable @State var location: String = "Chapel Hill"
-    FoodsterSearchView(vm: $vm, location: $location)
+    @Previewable @State var term: String = "Chinese"
+    @Previewable @State var sortBy: String = "best_match"
+    FoodsterSearchView(vm: $vm, location: $location, term: $term, sortBy: $sortBy)
 }
