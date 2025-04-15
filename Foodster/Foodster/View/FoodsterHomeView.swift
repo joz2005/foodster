@@ -10,6 +10,8 @@ import SwiftUI
 struct FoodsterHomeView: View {
     @Binding var vm: FoodsterViewModel
     @Binding var location: String
+    @Binding var user: User
+    @EnvironmentObject var locationManager: LocationManager
     @State private var showErrorAlert = false
     
     var body: some View {
@@ -54,18 +56,34 @@ struct FoodsterHomeView: View {
                 if vm.isLoading {
                     ProgressView()
                 } else {
-                    Text("Search")
+                    Image(systemName: "magnifyingglass")
                 }
             }
             .buttonStyle(.borderedProminent)
-            .disabled(vm.isLoading)
+            .disabled(vm.isLoading || location.isEmpty)
+            
+            Button {
+                locationManager.checkLocationAuthorization()
+                if let coordinate = locationManager.lastKnownLocation {
+                    user.latitude = String(coordinate.latitude)
+                    user.longitude = String(coordinate.longitude)
+                }
+                Task {
+                    await loadData()
+                }
+            } label: {
+                if vm.isLoading {
+                    ProgressView()
+                } else {
+                    Image(systemName: "mappin")
+                }
+            }
+            .buttonStyle(.borderedProminent)
         }
     }
     
     private var loadingSection: some View {
         VStack {
-            ProgressView()
-                .padding(.vertical, 30)
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
@@ -77,6 +95,9 @@ struct FoodsterHomeView: View {
                 }
                 .padding(.horizontal)
             }
+            
+            ProgressView()
+                .padding(.vertical, 30)
         }
     }
     
@@ -166,10 +187,10 @@ struct FoodsterHomeView: View {
         do {
             try await withThrowingTaskGroup(of: Void.self) { group in
                 group.addTask {
-                    await vm.getRestaurants(location: location, term: "", sortBy: "best_match")
+                    await vm.getRestaurants(location: location, term: "", sortBy: "best_match", latitude: user.latitude, longitude: user.longitude)
                 }
                 group.addTask {
-                    await vm.getPopularRestaurants(location: location)
+                    await vm.getPopularRestaurants(location: location, latitude: user.latitude, longitude: user.longitude)
                 }
                 try await group.waitForAll()
             }
@@ -182,5 +203,8 @@ struct FoodsterHomeView: View {
 #Preview {
     @Previewable @State var vm = FoodsterViewModel()
     @Previewable @State var location = ""
-    FoodsterHomeView(vm: $vm, location: $location)
+    @Previewable @State var user = User()
+    @Previewable @StateObject var locationManager = LocationManager()
+    FoodsterHomeView(vm: $vm, location: $location, user: $user)
+        .environmentObject(locationManager)
 }

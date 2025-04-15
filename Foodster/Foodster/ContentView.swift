@@ -1,8 +1,8 @@
 //
-//  ContentView.swift
+//  MainView.swift
 //  Foodster
 //
-//  Created by Joseph Zheng on 4/7/25.
+//  Created by Joseph Zheng on 4/11/25.
 //
 
 import SwiftUI
@@ -10,31 +10,29 @@ import SwiftUI
 struct ContentView: View {
     @State private var vm: FoodsterViewModel = .init()
     @State private var location: String = ""
+    @StateObject private var locationManager: LocationManager = LocationManager()
+    @State private var user: User = User()
     @State private var term: String = ""
     @State private var sortBy: String = "best_match"
 
     var body: some View {
         TabView {
-            NavigationStack {
-                FoodsterHomeView(vm: $vm, location: $location)
-            }
-            .tabItem {
-                Label("Home", systemImage: "house")
-            }
+            FoodsterHomeView(vm: $vm, location: $location, user: $user)
+                .tabItem {
+                    Label("Home", systemImage: "house")
+                }
+                .environmentObject(locationManager)
+            
+            FoodsterSearchView(vm: $vm, location: $location, term: $term, sortBy: $sortBy, user: $user)
+                .tabItem {
+                    Label("Search", systemImage: "magnifyingglass.circle")
+                }
+                .environmentObject(locationManager)
 
-            NavigationStack {
-                FoodsterSearchView(vm: $vm, location: $location, term: $term, sortBy: $sortBy)
-            }
-            .tabItem {
-                Label("Search", systemImage: "magnifyingglass.circle")
-            }
-
-            NavigationStack {
-                FoodsterSavedView(vm: $vm)
-            }
-            .tabItem {
-                Label("Saved", systemImage: "bookmark")
-            }
+            FoodsterSavedView(vm: $vm)
+                .tabItem {
+                    Label("Saved", systemImage: "bookmark")
+                }
         }
     }
 }

@@ -13,7 +13,7 @@ protocol FoodsterViewModelProtocol: AnyObject {
     var savedRestaurants: [Restaurant] { get set }
     var errorMessage: String? { get set }
     
-    func getRestaurants(location: String, term: String, sortBy: String) async
+    func getRestaurants(location: String, term: String, sortBy: String, latitude: String?, longitude: String?) async
     func getRestaurant(id: String) async
-    func getPopularRestaurants(location: String) async
+    func getPopularRestaurants(location: String, latitude: String?, longitude: String?) async
 }

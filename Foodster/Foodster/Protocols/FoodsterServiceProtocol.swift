@@ -8,6 +8,6 @@
 import Foundation
 
 protocol FoodsterServiceProtocol: AnyObject {
-    func getRestaurants(location: String, term: String, sortBy: String, attribute: String, limit: Int) async throws -> [Restaurant]
+    func getRestaurants(location: String, term: String, sortBy: String, attribute: String, limit: Int, latitude: String?, longitude: String?) async throws -> [Restaurant]
     func getRestaurant(id: String) async throws -> Restaurant
 }

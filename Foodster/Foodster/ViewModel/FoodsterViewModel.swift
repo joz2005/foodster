@@ -12,7 +12,6 @@ func makeFoodsterViewModel(service: FoodsterServiceProtocol) -> FoodsterViewMode
 
 @Observable
 class FoodsterViewModel: FoodsterViewModelProtocol {
-    
     var savedRestaurants: [Restaurant] = []
     var restaurants: [Restaurant] = []
     var popularRestaurants: [Restaurant] = []
@@ -20,21 +19,36 @@ class FoodsterViewModel: FoodsterViewModelProtocol {
     var errorMessage: String? = nil
     var isLoading: Bool = false
     
-    func getRestaurants(location: String, term: String, sortBy: String) async {
+    func getRestaurants(location: String, term: String, sortBy: String, latitude: String? = nil, longitude: String? = nil) async {
         isLoading = true
         errorMessage = nil
-            
+        
         do {
-            let fetchedRestaurants = try await service.getRestaurants(location: location, term: term, sortBy: sortBy, attribute: "", limit: 50)
+            let fetchedRestaurants = try await service.getRestaurants(
+                location: location,
+                term: term,
+                sortBy: sortBy,
+                attribute: "",
+                limit: 50,
+                latitude: latitude,
+                longitude: longitude
+            )
+            
             await MainActor.run {
                 restaurants = fetchedRestaurants
+                if fetchedRestaurants.isEmpty {
+                    errorMessage = "No restaurants found in this area"
+                }
             }
+            print(restaurants)
         } catch {
             await MainActor.run {
-                errorMessage = "Failed to fetch restaurants: \(error.localizedDescription)"
+                restaurants = []
+                errorMessage = "Search failed: \(error.localizedDescription)"
+                print("API Error: \(error)")
             }
         }
-            
+        
         await MainActor.run {
             isLoading = false
         }
@@ -73,12 +87,12 @@ class FoodsterViewModel: FoodsterViewModelProtocol {
         }
     }
     
-    func getPopularRestaurants(location: String) async {
+    func getPopularRestaurants(location: String, latitude: String?, longitude: String?) async {
         isLoading = true
         errorMessage = nil
         
         do {
-            let fetchedRestaurants = try await service.getRestaurants(location: location, term: "", sortBy: "best_match", attribute: "hot_and_new", limit: 8)
+            let fetchedRestaurants = try await service.getRestaurants(location: location, term: "", sortBy: "best_match", attribute: "hot_and_new", limit: 8, latitude: latitude, longitude: longitude)
             await MainActor.run {
                 popularRestaurants = fetchedRestaurants
             }
