@@ -6,46 +6,49 @@
 //
 
 import SwiftUI
-
+import SwiftData
 
 struct FoodsterSavedView: View {
     @Binding var vm: FoodsterViewModel
-    
-    @State private var savedRestaurants: [Restaurant] = []
-    
-    
+    @EnvironmentObject var locationManager: LocationManager
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \SavedRestaurant.savedAt, order: .reverse) private var savedRestaurants: [SavedRestaurant]
+
     var body: some View {
         NavigationStack {
-            List(vm.savedRestaurants) { restaurant in
-                HStack {
-                    NavigationLink {
-                        RestaurantDetailView(restaurant: restaurant)
-                    } label: {
-                        HStack {
+            List {
+                ForEach(savedRestaurants) { savedRestaurant in
+                    let restaurant = savedRestaurant.toRestaurant()
+                    HStack {
+                        NavigationLink {
+                            RestaurantDetailView(restaurant: restaurant, locationManager: locationManager)
+                        } label: {
                             RestaurantRow(restaurant: restaurant)
                         }
-                    }
-                    
-                    Button {
-                        Task {
-                            await vm.saveRestaurant(restaurant: restaurant)
+                        
+                        Button {
+                            modelContext.delete(savedRestaurant)
+                            vm.refreshSavedRestaurants(in: modelContext)
+                        } label: {
+                            Image(systemName: "bookmark.fill")
+                                .font(.system(size: 24))
+                                .frame(width: 44, height: 44)
+                                .contentShape(Rectangle())
                         }
-                    } label: {
-                        Image(systemName: vm.savedRestaurants.contains(where: {$0.id == restaurant.id}) ? "bookmark.fill" : "bookmark")
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
-                .refreshable {
-                    savedRestaurants = vm.savedRestaurants
-                }
+                .foregroundStyle(.primary)
             }
-            .navigationTitle("Saved")
-            .task {
-                savedRestaurants = vm.savedRestaurants
+            .onAppear{
+                vm.refreshSavedRestaurants(in: modelContext)
             }
+            .navigationTitle("Foodster")
             .overlay {
-                if vm.savedRestaurants.isEmpty {
-                    ContentUnavailableView ("No restaurants nearby.", systemImage: "fork.knife.circle", description: Text("Please enter another location above."))
+                if savedRestaurants.isEmpty {
+                    ContentUnavailableView("No restaurants saved.",
+                                           systemImage: "bookmark.circle",
+                                           description: Text("Please save a restaurant to view it here."))
                 }
             }
         }
@@ -53,6 +56,6 @@ struct FoodsterSavedView: View {
 }
 
 #Preview {
-    @Previewable @State var vm: FoodsterViewModel = FoodsterViewModel()
+    @Previewable @State var vm = FoodsterViewModel()
     FoodsterSavedView(vm: $vm)
 }

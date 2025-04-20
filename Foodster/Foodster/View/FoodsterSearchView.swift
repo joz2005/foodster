@@ -9,12 +9,15 @@ import SwiftUI
 
 struct FoodsterSearchView: View {
     // Backend Requests
+    @Environment(\.modelContext) private var modelContext
     @Binding var vm: FoodsterViewModel
     @Binding var location: String
     @Binding var term: String
     @Binding var sortBy: String
     @EnvironmentObject var locationManager: LocationManager
     @Binding var user: User
+    @Binding var hasPerformedInitialFetch: Bool
+    @State private var showErrorAlert = false
     @State private var sortTerm: String = "Best Match"
     var sortTerms: [String] = ["Best Match", "Review Count", "Distance", "Rating"]
     
@@ -27,7 +30,7 @@ struct FoodsterSearchView: View {
                     
                     Button {
                         Task {
-                            await search()
+                            await loadData()
                         }
                     } label: {
                         if vm.isLoading {
@@ -46,7 +49,8 @@ struct FoodsterSearchView: View {
                             user.longitude = String(coordinate.longitude)
                         }
                         Task {
-                            await search()
+                            location = ""
+                            await loadData()
                         }
                     } label: {
                         if vm.isLoading {
@@ -63,10 +67,10 @@ struct FoodsterSearchView: View {
                 HStack {
                     TextField("Enter Location", text: $location)
                         .textFieldStyle(.roundedBorder)
-                        .task {
-                            Task {
-                                await search()
-                            }
+                        .onSubmit {
+                            user.latitude = nil
+                            user.longitude = nil
+                            Task { await loadData() }
                         }
                     
                     Text("Sort By:")
@@ -76,8 +80,8 @@ struct FoodsterSearchView: View {
                         }
                     }
                     .pickerStyle(.menu)
-                    .onChange(of: sortTerm) {
-                        switch sortTerm {
+                    .onChange(of: sortTerm) { _, newValue in
+                        switch newValue {
                         case "Best Match":
                             sortBy = "best_match"
                         case "Distance":
@@ -89,9 +93,10 @@ struct FoodsterSearchView: View {
                         default:
                             break
                         }
-                        Task {
-                            if !location.isEmpty && !term.isEmpty {
-                                await search()
+                        
+                        if !location.isEmpty || (user.latitude != nil && user.longitude != nil) {
+                            Task {
+                                await loadData()
                             }
                         }
                     }
@@ -103,39 +108,69 @@ struct FoodsterSearchView: View {
 //                        .padding()
 //                }
                 
-                List(vm.restaurants) { restaurant in
+                List(vm.restaurants, id: \.id) { restaurant in
                     HStack {
                         NavigationLink {
-                            RestaurantDetailView(restaurant: restaurant)
+                            RestaurantDetailView(restaurant: restaurant, locationManager: locationManager)
                         } label: {
                             HStack {
                                 RestaurantRow(restaurant: restaurant)
+                                
+                                Spacer()
+                                
+                                Button {
+                                    vm.toggleSaveRestaurant(restaurant: restaurant, in: modelContext)
+                                } label: {
+                                    Image(systemName: vm.savedRestaurants.contains(where: { $0.id == restaurant.id }) ? "bookmark.fill" : "bookmark")
+                                        .font(.system(size: 24))
+                                        .frame(width: 44, height: 44)
+                                        .contentShape(Rectangle())
+                                }
+                                .buttonStyle(.plain)
                             }
                         }
-                        
-                        Button {
-                            Task {
-                                await vm.saveRestaurant(restaurant: restaurant)
-                            }
-                        } label: {
-                            Image(systemName: vm.savedRestaurants.contains(where: { $0.id == restaurant.id }) ? "bookmark.fill" : "bookmark")
-                        }
-                        .buttonStyle(.plain)
+                        .foregroundStyle(.primary)
                     }
                 }
-                .listStyle(PlainListStyle())
                 .refreshable {
                     if !location.isEmpty {
-                        await search()
+                        await loadData()
                     }
                 }
             }
-            
             .navigationTitle("Foodster")
-            .task {
-                if !location.isEmpty {
-                    await search()
+            .onAppear {
+                if !hasPerformedInitialFetch {
+                    locationManager.checkLocationAuthorization()
                 }
+                vm.refreshSavedRestaurants(in: modelContext)
+            }
+            .onChange(of: locationManager.locationPermissionGranted) { _, granted in
+                if granted && !hasPerformedInitialFetch {
+                    if let coordinate = locationManager.lastKnownLocation {
+                        user.latitude = String(coordinate.latitude)
+                        user.longitude = String(coordinate.longitude)
+                        Task {
+                            await loadData()
+                            hasPerformedInitialFetch = true
+                        }
+                    }
+                }
+            }
+            .onChange(of: locationManager.locationUpdated) { _, updated in
+                if updated && !hasPerformedInitialFetch {
+                    if let coordinate = locationManager.lastKnownLocation {
+                        user.latitude = String(coordinate.latitude)
+                        user.longitude = String(coordinate.longitude)
+                        Task {
+                            await loadData()
+                            hasPerformedInitialFetch = true
+                        }
+                    }
+                }
+            }
+            .onChange(of: modelContext) {
+                vm.refreshSavedRestaurants(in: modelContext)
             }
             .overlay {
                 if vm.restaurants.isEmpty {
@@ -145,12 +180,12 @@ struct FoodsterSearchView: View {
         }
     }
     
-    private func search() async {
+    private func loadData() async {
         print("🔄 Triggering search...")
         print("🧭 Current location: \(user.latitude ?? "nil"), \(user.longitude ?? "nil")")
-            
+                    
         await vm.getRestaurants(location: location, term: term, sortBy: sortBy, latitude: user.latitude, longitude: user.longitude)
-        
+                
         print("🔎 Search completed")
         print("🏢 Restaurants count: \(vm.restaurants.count)")
         dump(vm.restaurants) // Detailed object dump
@@ -164,6 +199,7 @@ struct FoodsterSearchView: View {
     @Previewable @State var sortBy = "best_match"
     @Previewable @StateObject var locationManager = LocationManager()
     @Previewable @State var user = User()
-    FoodsterSearchView(vm: $vm, location: $location, term: $term, sortBy: $sortBy, user: $user)
+    @Previewable @State var hasPerformedInitialFetch = false
+    FoodsterSearchView(vm: $vm, location: $location, term: $term, sortBy: $sortBy, user: $user, hasPerformedInitialFetch: $hasPerformedInitialFetch)
         .environmentObject(locationManager)
 }

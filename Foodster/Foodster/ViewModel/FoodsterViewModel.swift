@@ -5,19 +5,29 @@
 //  Created by Joseph Zheng on 4/7/25.
 //
 import Foundation
+import SwiftData
 
-func makeFoodsterViewModel(service: FoodsterServiceProtocol) -> FoodsterViewModelProtocol? {
+func makeFoodsterViewModel(service: FoodsterServiceProtocol) -> (any ObservableObject)? {
     return FoodsterViewModel(service: service)
 }
 
 @Observable
-class FoodsterViewModel: FoodsterViewModelProtocol {
-    var savedRestaurants: [Restaurant] = []
+class FoodsterViewModel: ObservableObject {
+    
     var restaurants: [Restaurant] = []
+//    var unfilteredRestaurants: [Restaurant] = []
     var popularRestaurants: [Restaurant] = []
     var restaurant: Restaurant? = nil
     var errorMessage: String? = nil
     var isLoading: Bool = false
+    
+    var savedRestaurants: [SavedRestaurant] = []
+    
+    func refreshSavedRestaurants(in context: ModelContext) {
+            let descriptor = FetchDescriptor<SavedRestaurant>()
+            savedRestaurants = (try? context.fetch(descriptor)) ?? []
+        }
+    
     
     func getRestaurants(location: String, term: String, sortBy: String, latitude: String? = nil, longitude: String? = nil) async {
         isLoading = true
@@ -54,6 +64,29 @@ class FoodsterViewModel: FoodsterViewModelProtocol {
         }
     }
     
+//    func getUnfilteredRestaurants(location: String, latitude: String? = nil, longitude: String? = nil) async {
+//        do {
+//            let fetchedRestaurants = try await service.getRestaurants(location: location, term: "", sortBy: "", attribute: "", limit: 50, latitude: latitude, longitude: longitude)
+//            
+//            await MainActor.run {
+//                unfilteredRestaurants = fetchedRestaurants
+//                if fetchedRestaurants.isEmpty {
+//                    errorMessage = "No restaurants found in this area"
+//                }
+//            }
+//            print(unfilteredRestaurants)
+//        } catch {
+//            await MainActor.run {
+//                unfilteredRestaurants = []
+//                errorMessage = "Search failed: \(error.localizedDescription)"
+//            }
+//        }
+//        
+//        await MainActor.run {
+//            isLoading = false
+//        }
+//    }
+    
     func getRestaurant(id: String) async {
         isLoading = true
         errorMessage = nil
@@ -72,21 +105,40 @@ class FoodsterViewModel: FoodsterViewModelProtocol {
         }
     }
     
-    func saveRestaurant(restaurant: Restaurant) async {
-        isLoading = false
-        errorMessage = nil
+    func isRestaurantSaved(_ restaurant: Restaurant, in context: ModelContext) -> Bool {
+        let descriptor = FetchDescriptor<SavedRestaurant>(
+            predicate: #Predicate { $0.id == restaurant.id }
+        )
         
         do {
-            if savedRestaurants.contains(where: { $0.id == restaurant.id }) {
-                savedRestaurants.removeAll(where: { $0.id == restaurant.id })
-            } else {
-                savedRestaurants.append(restaurant)
-            }
+            let savedRestaurants = try context.fetch(descriptor)
+            return !savedRestaurants.isEmpty
         } catch {
-            errorMessage = "Failed to save/unsave restaurant: \(error.localizedDescription)"
+            print("Error checking if restaurant is saved: \(error)")
+            return false
         }
     }
     
+    func toggleSaveRestaurant(restaurant: Restaurant, in context: ModelContext) {
+        let descriptor = FetchDescriptor<SavedRestaurant>(
+            predicate: #Predicate { $0.id == restaurant.id }
+        )
+        
+        do {
+            let savedRestaurants = try context.fetch(descriptor)
+            
+            if let existingSaved = savedRestaurants.first {
+                context.delete(existingSaved)
+            } else {
+                let savedRestaurant = SavedRestaurant(from: restaurant)
+                context.insert(savedRestaurant)
+            }
+            refreshSavedRestaurants(in: context)
+        } catch {
+            print("Error toggling restaurant save status: \(error)")
+        }
+    }
+
     func getPopularRestaurants(location: String, latitude: String?, longitude: String?) async {
         isLoading = true
         errorMessage = nil

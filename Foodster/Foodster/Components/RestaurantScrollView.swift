@@ -12,25 +12,48 @@ struct RestaurantScrollView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            AsyncImage(url: URL(string: restaurant.imageUrl ?? "")) { phase in
-                switch phase {
-                case .empty:
-                    Color.gray
-                case .success(let image):
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                case .failure:
-                    Image(systemName: "photo")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .foregroundColor(.gray)
-                @unknown default:
-                    EmptyView()
+            if let imageUrl = restaurant.imageUrl, let url = URL(string: imageUrl) {
+                AsyncImage(url: url, transaction: Transaction(animation: .easeInOut)) { phase in
+                    switch phase {
+                    case .empty:
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.3))
+                            .overlay {
+                                ProgressView()
+                            }
+                            .frame(height: 200)
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(height: 200)
+                    case .failure:
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.3))
+                            .overlay {
+                                Image(systemName: "photo")
+                                    .font(.largeTitle)
+                                    .foregroundColor(.gray)
+                            }
+                            .frame(height: 200)
+                    @unknown default:
+                        EmptyView()
+                            .frame(height: 200)
+                    }
                 }
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .id("\(restaurant.id)-scroll-image") // Stable ID to maintain image across tab switches
+            } else {
+                Rectangle()
+                    .fill(Color.gray.opacity(0.3))
+                    .frame(height: 200)
+                    .overlay {
+                        Image(systemName: "photo")
+                            .font(.largeTitle)
+                            .foregroundColor(.gray)
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
             }
-            .frame(width: 350, height: 200)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
             
             VStack(alignment: .leading) {
                 Text(restaurant.name)
@@ -46,5 +69,6 @@ struct RestaurantScrollView: View {
             }
             .frame(width: 350, alignment: .leading)
         }
+        .frame(width: 350)
     }
 }

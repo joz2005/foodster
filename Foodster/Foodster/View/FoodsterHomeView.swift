@@ -6,12 +6,15 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct FoodsterHomeView: View {
+    @Environment(\.modelContext) private var modelContext
     @Binding var vm: FoodsterViewModel
     @Binding var location: String
     @Binding var user: User
     @EnvironmentObject var locationManager: LocationManager
+    @Binding var hasPerformedInitialFetch: Bool
     @State private var showErrorAlert = false
     
     var body: some View {
@@ -34,8 +37,38 @@ struct FoodsterHomeView: View {
             } message: {
                 Text(vm.errorMessage ?? "Unknown error occurred")
             }
-            .task {
-                await loadData()
+            .onAppear {
+                if !hasPerformedInitialFetch {
+                    locationManager.checkLocationAuthorization()
+                }
+                vm.refreshSavedRestaurants(in: modelContext)
+            }
+            .onChange(of: locationManager.locationPermissionGranted) { _, granted in
+                if granted && !hasPerformedInitialFetch {
+                    if let coordinate = locationManager.lastKnownLocation {
+                        user.latitude = String(coordinate.latitude)
+                        user.longitude = String(coordinate.longitude)
+                        Task {
+                            await loadData()
+                            hasPerformedInitialFetch = true
+                        }
+                    }
+                }
+            }
+            .onChange(of: locationManager.locationUpdated) { _, updated in
+                if updated && !hasPerformedInitialFetch {
+                    if let coordinate = locationManager.lastKnownLocation {
+                        user.latitude = String(coordinate.latitude)
+                        user.longitude = String(coordinate.longitude)
+                        Task {
+                            await loadData()
+                            hasPerformedInitialFetch = true
+                        }
+                    }
+                }
+            }
+            .onChange(of: modelContext) {
+                vm.refreshSavedRestaurants(in: modelContext)
             }
             .refreshable {
                 await loadData()
@@ -49,6 +82,8 @@ struct FoodsterHomeView: View {
                 .textFieldStyle(.roundedBorder)
                 .submitLabel(.search)
                 .onSubmit {
+                    user.latitude = nil
+                    user.longitude = nil
                     Task { await loadData() }
                 }
             
@@ -69,6 +104,7 @@ struct FoodsterHomeView: View {
                     user.longitude = String(coordinate.longitude)
                 }
                 Task {
+                    location = ""
                     await loadData()
                 }
             } label: {
@@ -84,7 +120,6 @@ struct FoodsterHomeView: View {
     
     private var loadingSection: some View {
         VStack {
-            
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
                     ForEach(0 ..< 3, id: \.self) { _ in
@@ -128,7 +163,7 @@ struct FoodsterHomeView: View {
                 LazyHStack(spacing: 16) {
                     ForEach(vm.popularRestaurants) { restaurant in
                         NavigationLink {
-                            RestaurantDetailView(restaurant: restaurant)
+                            RestaurantDetailView(restaurant: restaurant, locationManager: locationManager)
                         } label: {
                             RestaurantScrollView(restaurant: restaurant)
                                 .foregroundColor(.primary)
@@ -149,9 +184,9 @@ struct FoodsterHomeView: View {
                 .padding(.horizontal)
             
             LazyVStack(alignment: .leading, spacing: 16) {
-                ForEach(vm.restaurants) { restaurant in
+                ForEach(vm.restaurants, id: \.id) { restaurant in
                     NavigationLink {
-                        RestaurantDetailView(restaurant: restaurant)
+                        RestaurantDetailView(restaurant: restaurant, locationManager: locationManager)
                     } label: {
                         HStack {
                             RestaurantRow(restaurant: restaurant)
@@ -159,11 +194,12 @@ struct FoodsterHomeView: View {
                             Spacer()
                             
                             Button {
-                                Task {
-                                    await vm.saveRestaurant(restaurant: restaurant)
-                                }
+                                vm.toggleSaveRestaurant(restaurant: restaurant, in: modelContext)
                             } label: {
                                 Image(systemName: vm.savedRestaurants.contains(where: { $0.id == restaurant.id }) ? "bookmark.fill" : "bookmark")
+                                    .font(.system(size: 24))
+                                    .frame(width: 44, height: 44)
+                                    .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
                         }
@@ -177,8 +213,8 @@ struct FoodsterHomeView: View {
     
     private var emptyStateView: some View {
         ContentUnavailableView(
-            "No restaurants found",
-            systemImage: "fork.knife",
+            "No restaurants found.",
+            systemImage: "fork.knife.circle",
             description: Text("Try searching in a different location")
         )
     }
@@ -205,6 +241,7 @@ struct FoodsterHomeView: View {
     @Previewable @State var location = ""
     @Previewable @State var user = User()
     @Previewable @StateObject var locationManager = LocationManager()
-    FoodsterHomeView(vm: $vm, location: $location, user: $user)
+    @Previewable @State var hasPerformedInitialFetch = false
+    FoodsterHomeView(vm: $vm, location: $location, user: $user, hasPerformedInitialFetch: $hasPerformedInitialFetch)
         .environmentObject(locationManager)
 }

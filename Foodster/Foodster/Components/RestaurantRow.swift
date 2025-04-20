@@ -6,27 +6,59 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct RestaurantRow: View {
     let restaurant: Restaurant
     
     var body: some View {
-        HStack(alignment: .top) {
-            AsyncImage(url: URL(string: restaurant.imageUrl ?? "")) { image in
-                image.resizable()
-            } placeholder: {
-                Color.gray
+        HStack(alignment: .top, spacing: 12) {
+            if let imageUrl = restaurant.imageUrl, let url = URL(string: imageUrl) {
+                AsyncImage(url: url, transaction: Transaction(animation: .easeInOut)) { phase in
+                    switch phase {
+                    case .empty:
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.3))
+                            .overlay {
+                                ProgressView()
+                            }
+                            .frame(width: 60, height: 60)
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 60, height: 60)
+                    case .failure:
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.3))
+                            .overlay {
+                                Image(systemName: "photo")
+                                    .foregroundColor(.gray)
+                            }
+                            .frame(width: 60, height: 60)
+                    @unknown default:
+                        EmptyView()
+                            .frame(width: 60, height: 60)
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .id("\(restaurant.id)-row-image") // Stable ID to maintain image across tab switches
+            } else {
+                Rectangle()
+                    .fill(Color.gray.opacity(0.3))
+                    .frame(width: 60, height: 60)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
             }
-            .frame(width: 60, height: 60)
-            .cornerRadius(8)
             
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(restaurant.name)
                     .font(.headline)
+                    .lineLimit(1)
                 
-                Text(restaurant.location.displayAddress.joined(separator: "\n"))
+                Text(restaurant.location.displayAddress.joined(separator: ", "))
                     .font(.subheadline)
                     .foregroundColor(.secondary)
+                    .lineLimit(2)
                     .multilineTextAlignment(.leading)
                 
                 HStack {

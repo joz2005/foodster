@@ -14,16 +14,17 @@ struct ContentView: View {
     @State private var user: User = User()
     @State private var term: String = ""
     @State private var sortBy: String = "best_match"
+    @State private var hasPerformedInitialFetch = false
 
     var body: some View {
         TabView {
-            FoodsterHomeView(vm: $vm, location: $location, user: $user)
+            FoodsterHomeView(vm: $vm, location: $location, user: $user, hasPerformedInitialFetch: $hasPerformedInitialFetch)
                 .tabItem {
                     Label("Home", systemImage: "house")
                 }
                 .environmentObject(locationManager)
             
-            FoodsterSearchView(vm: $vm, location: $location, term: $term, sortBy: $sortBy, user: $user)
+            FoodsterSearchView(vm: $vm, location: $location, term: $term, sortBy: $sortBy, user: $user, hasPerformedInitialFetch: $hasPerformedInitialFetch)
                 .tabItem {
                     Label("Search", systemImage: "magnifyingglass.circle")
                 }
@@ -33,6 +34,7 @@ struct ContentView: View {
                 .tabItem {
                     Label("Saved", systemImage: "bookmark")
                 }
+                .environmentObject(locationManager)
         }
     }
 }

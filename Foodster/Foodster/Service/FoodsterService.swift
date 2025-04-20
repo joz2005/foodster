@@ -19,11 +19,11 @@ class FoodsterService: FoodsterServiceProtocol {
         var queryItems: [URLQueryItem] = []
             
         // Handle location parameters
-        if let latitude = latitude, let longitude = longitude {
+        if !location.isEmpty {
+            queryItems.append(URLQueryItem(name: "location", value: location))
+        } else {
             queryItems.append(URLQueryItem(name: "latitude", value: latitude))
             queryItems.append(URLQueryItem(name: "longitude", value: longitude))
-        } else {
-            queryItems.append(URLQueryItem(name: "location", value: location))
         }
 
         // Add common parameters
