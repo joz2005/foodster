@@ -5,11 +5,12 @@
 //  Created by Joseph Zheng on 4/11/25.
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct RestaurantRow: View {
     let restaurant: Restaurant
+    private var restaurantId: String { "\(restaurant.id)-\(restaurant.imageUrl ?? "")" }
     
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -42,7 +43,8 @@ struct RestaurantRow: View {
                     }
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 8))
-                .id("\(restaurant.id)-row-image") // Stable ID to maintain image across tab switches
+                .id("\(restaurantId)-row-image")
+                
             } else {
                 Rectangle()
                     .fill(Color.gray.opacity(0.3))
@@ -70,5 +72,6 @@ struct RestaurantRow: View {
                 .font(.caption)
             }
         }
+        .id(restaurantId)
     }
 }

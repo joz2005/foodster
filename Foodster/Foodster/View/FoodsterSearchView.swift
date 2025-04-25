@@ -25,31 +25,37 @@ struct FoodsterSearchView: View {
         NavigationStack {
             VStack {
                 HStack {
-                    TextField("Search for restaurants", text: $term)
-                        .textFieldStyle(.roundedBorder)
-                            .padding(8)
-                            .cornerRadius(8)
-                            .colorScheme(.light)
+                    // Search TextField with icon
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.gray)
+                            .padding(.leading, 8)
+                        
+                        TextField("Search for restaurants...", text: $term)
+                            .padding(.vertical, 10)
+                            .submitLabel(.search)
                             .onSubmit {
-                                Task {
-                                    await loadData()
-                                }
+                                Task { await loadData() }
                             }
-                    
-                    Button {
-                        Task {
-                            await loadData()
-                        }
-                    } label: {
-                        if vm.isLoading {
-                            ProgressView()
-                        } else {
-                            Image(systemName: "magnifyingglass")
+                        
+                        if !term.isEmpty {
+                            Button {
+                                term = ""
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.gray)
+                            }
+                            .padding(.trailing, 8)
                         }
                     }
-                    .buttonStyle(.borderedProminent)
-                    .disabled((location.isEmpty && user.latitude == nil && user.longitude == nil) || vm.isLoading)
+                    .background(Color(.systemBackground))
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                    )
                     
+                    // Location Button
                     Button {
                         locationManager.checkLocationAuthorization()
                         if let coordinate = locationManager.lastKnownLocation {
@@ -61,58 +67,67 @@ struct FoodsterSearchView: View {
                             await loadData()
                         }
                     } label: {
-                        if vm.isLoading {
-                            ProgressView()
-                        } else {
-                            Image(systemName: "mappin")
-                        }
+                        Image(systemName: "location.circle.fill")
+                            .font(.system(size: 28))
+                            .symbolRenderingMode(.multicolor)
+                            .frame(width: 44, height: 44)
                     }
-                    .buttonStyle(.borderedProminent)
                 }
-                .padding([.leading], 10)
-                .padding([.trailing], 10)
-            
-                HStack {
-                    TextField("Enter Location", text: $location)
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+                .background(.thinMaterial)
+                
+                HStack(spacing: 12) {
+                    TextField("Location", text: $location)
                         .textFieldStyle(.roundedBorder)
-                        .colorScheme(.light)
+                        .submitLabel(.done)
                         .onSubmit {
                             user.latitude = nil
                             user.longitude = nil
                             Task { await loadData() }
                         }
                     
-                    Text("Sort By:")
-                    Picker("Sort By:", selection: $sortTerm) {
-                        ForEach(sortTerms, id: \.self) { term in
-                            Text(term)
+                    Menu {
+                        Picker("Sort By", selection: $sortTerm) {
+                            ForEach(sortTerms, id: \.self) { term in
+                                Label(term, systemImage: iconForSortTerm(term))
+                            }
                         }
-                    }
-                    .pickerStyle(.menu)
-                    .background(.white)
-                    .cornerRadius(8)
-                    .onChange(of: sortTerm) { _, newValue in
-                        switch newValue {
-                        case "Best Match":
-                            sortBy = "best_match"
-                        case "Distance":
-                            sortBy = "distance"
-                        case "Review Count":
-                            sortBy = "review_count"
-                        case "Rating":
-                            sortBy = "rating"
-                        default:
-                            break
+                    } label: {
+                        HStack {
+                            Text("Sort")
+                            Image(systemName: "arrow.up.arrow.down.circle.fill")
                         }
-                        
-                        if !location.isEmpty || (user.latitude != nil && user.longitude != nil) {
-                            Task {
-                                await loadData()
+                        .padding(8)
+                        .background(Color(.systemBackground))
+                        .cornerRadius(8)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                        )
+                        .onChange(of: sortTerm) { _, newValue in
+                            switch newValue {
+                            case "Best Match":
+                                sortBy = "best_match"
+                            case "Distance":
+                                sortBy = "distance"
+                            case "Review Count":
+                                sortBy = "review_count"
+                            case "Rating":
+                                sortBy = "rating"
+                            default:
+                                break
+                            }
+                                                
+                            if !location.isEmpty || (user.latitude != nil && user.longitude != nil) {
+                                Task {
+                                    await loadData()
+                                }
                             }
                         }
                     }
                 }
-                .padding()
+                .padding(.horizontal)
 //                if let error = vm.errorMessage {
 //                    Text(error)
 //                        .foregroundColor(.red)
@@ -149,7 +164,7 @@ struct FoodsterSearchView: View {
                     }
                 }
             }
-            .navigationTitle("Foodster")
+            .navigationTitle("Search")
             .onAppear {
                 if !hasPerformedInitialFetch {
                     locationManager.checkLocationAuthorization()
@@ -188,6 +203,16 @@ struct FoodsterSearchView: View {
                     ContentUnavailableView("No restaurants nearby.", systemImage: "fork.knife.circle", description: Text("Please enter another location above."))
                 }
             }
+        }
+    }
+    
+    private func iconForSortTerm(_ term: String) -> String {
+        switch term {
+        case "Best Match": return "rosette"
+        case "Distance": return "map"
+        case "Review Count": return "text.bubble"
+        case "Rating": return "star.fill"
+        default: return "arrow.up.arrow.down"
         }
     }
     

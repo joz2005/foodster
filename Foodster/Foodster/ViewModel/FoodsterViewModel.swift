@@ -13,7 +13,6 @@ func makeFoodsterViewModel(service: FoodsterServiceProtocol) -> (any ObservableO
 
 @Observable
 class FoodsterViewModel: ObservableObject {
-    
     var restaurants: [Restaurant] = []
 //    var unfilteredRestaurants: [Restaurant] = []
     var popularRestaurants: [Restaurant] = []
@@ -24,10 +23,9 @@ class FoodsterViewModel: ObservableObject {
     var savedRestaurants: [SavedRestaurant] = []
     
     func refreshSavedRestaurants(in context: ModelContext) {
-            let descriptor = FetchDescriptor<SavedRestaurant>()
-            savedRestaurants = (try? context.fetch(descriptor)) ?? []
-        }
-    
+        let descriptor = FetchDescriptor<SavedRestaurant>()
+        savedRestaurants = (try? context.fetch(descriptor)) ?? []
+    }
     
     func getRestaurants(location: String, term: String, sortBy: String, latitude: String? = nil, longitude: String? = nil) async {
         isLoading = true
@@ -43,49 +41,20 @@ class FoodsterViewModel: ObservableObject {
                 latitude: latitude,
                 longitude: longitude
             )
-            
-            await MainActor.run {
-                restaurants = fetchedRestaurants
-                if fetchedRestaurants.isEmpty {
-                    errorMessage = "No restaurants found in this area"
-                }
+
+            restaurants = fetchedRestaurants
+            if fetchedRestaurants.isEmpty {
+                errorMessage = "No restaurants found in this area"
             }
             print(restaurants)
         } catch {
-            await MainActor.run {
-                restaurants = []
-                errorMessage = "Search failed: \(error.localizedDescription)"
-                print("API Error: \(error)")
-            }
+            restaurants = []
+            errorMessage = "Search failed: \(error.localizedDescription)"
+            print("API Error: \(error)")
         }
         
-        await MainActor.run {
-            isLoading = false
-        }
+        isLoading = false
     }
-    
-//    func getUnfilteredRestaurants(location: String, latitude: String? = nil, longitude: String? = nil) async {
-//        do {
-//            let fetchedRestaurants = try await service.getRestaurants(location: location, term: "", sortBy: "", attribute: "", limit: 50, latitude: latitude, longitude: longitude)
-//            
-//            await MainActor.run {
-//                unfilteredRestaurants = fetchedRestaurants
-//                if fetchedRestaurants.isEmpty {
-//                    errorMessage = "No restaurants found in this area"
-//                }
-//            }
-//            print(unfilteredRestaurants)
-//        } catch {
-//            await MainActor.run {
-//                unfilteredRestaurants = []
-//                errorMessage = "Search failed: \(error.localizedDescription)"
-//            }
-//        }
-//        
-//        await MainActor.run {
-//            isLoading = false
-//        }
-//    }
     
     func getRestaurant(id: String) async {
         isLoading = true
@@ -94,14 +63,11 @@ class FoodsterViewModel: ObservableObject {
         
         do {
             let fetchedRestaurant = try await service.getRestaurant(id: id)
-            await MainActor.run {
-                restaurant = fetchedRestaurant
-            }
+
+            restaurant = fetchedRestaurant
             
         } catch {
-            await MainActor.run {
-                errorMessage = "Failed to fetch restaurants: \(error.localizedDescription)"
-            }
+            errorMessage = "Failed to fetch restaurants: \(error.localizedDescription)"
         }
     }
     
@@ -145,18 +111,14 @@ class FoodsterViewModel: ObservableObject {
         
         do {
             let fetchedRestaurants = try await service.getRestaurants(location: location, term: "", sortBy: "best_match", attribute: "hot_and_new", limit: 8, latitude: latitude, longitude: longitude)
-            await MainActor.run {
-                popularRestaurants = fetchedRestaurants
-            }
+  
+            popularRestaurants = fetchedRestaurants
+            
         } catch {
-            await MainActor.run {
-                errorMessage = "Failed to fetch restaurants: \(error.localizedDescription)"
-            }
+            errorMessage = "Failed to fetch restaurants: \(error.localizedDescription)"
         }
         
-        await MainActor.run {
-            isLoading = false
-        }
+        isLoading = false
     }
     
     let service: FoodsterServiceProtocol

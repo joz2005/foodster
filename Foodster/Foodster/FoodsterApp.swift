@@ -5,8 +5,8 @@
 //  Created by Joseph Zheng on 4/7/25.
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 @main
 struct FoodsterApp: App {

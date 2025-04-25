@@ -5,8 +5,8 @@
 //  Created by Joseph Zheng on 4/11/25.
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct FoodsterHomeView: View {
     @Environment(\.modelContext) private var modelContext
@@ -22,14 +22,15 @@ struct FoodsterHomeView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     searchSection
-                    
+                        .padding(.horizontal)
+                               
                     if vm.isLoading {
                         loadingSection
                     } else {
                         contentSection
                     }
                 }
-                .padding()
+                .padding(.vertical)
             }
             .navigationTitle("Foodster")
             .alert("Error", isPresented: $showErrorAlert) {
@@ -77,66 +78,94 @@ struct FoodsterHomeView: View {
     }
     
     private var searchSection: some View {
-        HStack {
-            TextField("Enter location", text: $location)
-                .textFieldStyle(.roundedBorder)
-                .colorScheme(.light)
-                .submitLabel(.search)
-                .onSubmit {
-                    user.latitude = nil
-                    user.longitude = nil
-                    Task { await loadData() }
+        VStack(spacing: 16) {
+            // Location Row
+            HStack(spacing: 12) {
+                HStack {
+                    Image(systemName: "mappin.and.ellipse")
+                        .foregroundColor(.gray)
+                        .padding(.leading, 8)
+                        
+                    TextField("Location", text: $location)
+                        .submitLabel(.done)
+                        .padding(.vertical, 10)
+                        .onSubmit {
+                            user.latitude = nil
+                            user.longitude = nil
+                            Task { await loadData() }
+                        }
+                        
+                    if !location.isEmpty {
+                        Button {
+                            location = ""
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.gray)
+                        }
+                        .padding(.trailing, 8)
+                    }
                 }
-            
-            Button(action: { Task { await loadData() } }) {
-                if vm.isLoading {
-                    ProgressView()
-                } else {
-                    Image(systemName: "magnifyingglass")
+                .background(Color(.systemBackground))
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                )
+                    
+                Button {
+                    locationManager.checkLocationAuthorization()
+                    if let coordinate = locationManager.lastKnownLocation {
+                        user.latitude = String(coordinate.latitude)
+                        user.longitude = String(coordinate.longitude)
+                    }
+                    Task {
+                        location = ""
+                        await loadData()
+                    }
+                } label: {
+                    Image(systemName: "location.circle.fill")
+                        .font(.system(size: 28))
+                        .symbolRenderingMode(.multicolor)
                 }
             }
-            .buttonStyle(.borderedProminent)
-            .disabled(vm.isLoading || location.isEmpty)
-            
-            Button {
-                locationManager.checkLocationAuthorization()
-                if let coordinate = locationManager.lastKnownLocation {
-                    user.latitude = String(coordinate.latitude)
-                    user.longitude = String(coordinate.longitude)
-                }
-                Task {
-                    location = ""
-                    await loadData()
-                }
-            } label: {
-                if vm.isLoading {
-                    ProgressView()
-                } else {
-                    Image(systemName: "mappin")
-                }
-            }
-            .buttonStyle(.borderedProminent)
         }
+        .padding()
+        .background(.thinMaterial)
+        .cornerRadius(16)
     }
     
     private var loadingSection: some View {
         VStack {
+            // Enhanced skeleton loading to match search view style
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
-                    ForEach(0 ..< 3, id: \.self) { _ in
+                    ForEach(0 ..< 3) { _ in
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.gray.opacity(0.2))
+                            .fill(Color.gray.opacity(0.1))
                             .frame(width: 300, height: 180)
+                            .overlay(
+                                VStack(alignment: .leading, spacing: 8) {
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .frame(height: 20)
+                                        .padding(.trailing, 60)
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .frame(height: 16)
+                                        .padding(.trailing, 100)
+                                    Spacer()
+                                }
+                                .padding()
+                            )
                     }
                 }
                 .padding(.horizontal)
             }
-            
+                
             ProgressView()
                 .padding(.vertical, 30)
+                .tint(.blue)
         }
     }
-    
+
     private var contentSection: some View {
         VStack(alignment: .leading, spacing: 24) {
             if !vm.popularRestaurants.isEmpty {

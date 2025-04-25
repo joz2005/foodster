@@ -5,8 +5,8 @@
 //  Created by Joseph Zheng on 4/11/25.
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct FoodsterSavedView: View {
     @Binding var vm: FoodsterViewModel
@@ -16,6 +16,7 @@ struct FoodsterSavedView: View {
 
     var body: some View {
         NavigationStack {
+            Spacer(minLength: 20)
             List {
                 ForEach(savedRestaurants) { savedRestaurant in
                     let restaurant = savedRestaurant.toRestaurant()
@@ -23,27 +24,32 @@ struct FoodsterSavedView: View {
                         NavigationLink {
                             RestaurantDetailView(restaurant: restaurant, locationManager: locationManager)
                         } label: {
-                            RestaurantRow(restaurant: restaurant)
+                            HStack {
+                                RestaurantRow(restaurant: restaurant)
+
+                                Spacer()
+
+                                Button {
+                                    modelContext.delete(savedRestaurant)
+                                    vm.refreshSavedRestaurants(in: modelContext)
+                                } label: {
+                                    Image(systemName: "bookmark.slash.fill")
+                                        .font(.system(size: 24))
+                                        .foregroundColor(.red)
+                                        .frame(width: 44, height: 44)
+                                        .contentShape(Rectangle())
+                                }
+                                .buttonStyle(.plain)
+                            }
                         }
-                        
-                        Button {
-                            modelContext.delete(savedRestaurant)
-                            vm.refreshSavedRestaurants(in: modelContext)
-                        } label: {
-                            Image(systemName: "bookmark.fill")
-                                .font(.system(size: 24))
-                                .frame(width: 44, height: 44)
-                                .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
                     }
                 }
                 .foregroundStyle(.primary)
             }
-            .onAppear{
+            .onAppear {
                 vm.refreshSavedRestaurants(in: modelContext)
             }
-            .navigationTitle("Foodster")
+            .navigationTitle("Saved Restaurants")
             .overlay {
                 if savedRestaurants.isEmpty {
                     ContentUnavailableView("No restaurants saved.",
