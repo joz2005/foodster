@@ -89,6 +89,8 @@ struct FoodsterSearchView: View {
                         }
                     }
                     .pickerStyle(.menu)
+                    .background(.white)
+                    .cornerRadius(8)
                     .onChange(of: sortTerm) { _, newValue in
                         switch newValue {
                         case "Best Match":
