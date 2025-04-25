@@ -27,6 +27,14 @@ struct FoodsterSearchView: View {
                 HStack {
                     TextField("Search for restaurants", text: $term)
                         .textFieldStyle(.roundedBorder)
+                            .padding(8)
+                            .cornerRadius(8)
+                            .colorScheme(.light)
+                            .onSubmit {
+                                Task {
+                                    await loadData()
+                                }
+                            }
                     
                     Button {
                         Task {
@@ -67,6 +75,7 @@ struct FoodsterSearchView: View {
                 HStack {
                     TextField("Enter Location", text: $location)
                         .textFieldStyle(.roundedBorder)
+                        .colorScheme(.light)
                         .onSubmit {
                             user.latitude = nil
                             user.longitude = nil

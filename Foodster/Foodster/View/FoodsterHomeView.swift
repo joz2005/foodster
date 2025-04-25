@@ -80,6 +80,7 @@ struct FoodsterHomeView: View {
         HStack {
             TextField("Enter location", text: $location)
                 .textFieldStyle(.roundedBorder)
+                .colorScheme(.light)
                 .submitLabel(.search)
                 .onSubmit {
                     user.latitude = nil

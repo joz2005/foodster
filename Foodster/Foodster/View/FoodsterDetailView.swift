@@ -57,6 +57,13 @@ struct RestaurantDetailView: View {
                     .cornerRadius(12)
                     .shadow(radius: 5)
                     .padding(.horizontal)
+                } else {
+                    Text(restaurant.name)
+                        .font(.largeTitle).bold()
+                        .padding([.leading, .bottom], 16)
+                        .cornerRadius(12)
+                        .shadow(radius: 5)
+                        .padding(.horizontal)
                 }
 
                 HStack(spacing: 16) {
