@@ -41,7 +41,7 @@ Built with love and passion, Foodster ensures you're never lost when hunger stri
 ---
 
 ### 📚 Bookmark & Save Restaurants
-- Tap the ⭐️ bookmark icon next to any restaurant to save it.
+- Tap the 🔖 bookmark icon next to any restaurant to save it.
 - Your favorites are safely stored **locally** — even after closing the app!
 
 ---
@@ -57,6 +57,7 @@ Built with love and passion, Foodster ensures you're never lost when hunger stri
 - **SwiftUI**
 - **MapKit** & **CoreLocation** (for location querying)
 - **SwiftData** (for local persistence)
+- And, **Yelp API** (for convenient restaurant fetching)
 
 ---
 ## 📸 Screenshots
