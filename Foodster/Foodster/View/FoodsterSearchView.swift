@@ -25,7 +25,6 @@ struct FoodsterSearchView: View {
         NavigationStack {
             VStack {
                 HStack {
-                    // Search TextField with icon
                     HStack {
                         Image(systemName: "magnifyingglass")
                             .foregroundColor(.gray)
@@ -217,14 +216,7 @@ struct FoodsterSearchView: View {
     }
     
     private func loadData() async {
-        print("🔄 Triggering search...")
-        print("🧭 Current location: \(user.latitude ?? "nil"), \(user.longitude ?? "nil")")
-                    
         await vm.getRestaurants(location: location, term: term, sortBy: sortBy, latitude: user.latitude, longitude: user.longitude)
-                
-        print("🔎 Search completed")
-        print("🏢 Restaurants count: \(vm.restaurants.count)")
-        dump(vm.restaurants) // Detailed object dump
     }
 }
 

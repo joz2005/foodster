@@ -34,7 +34,7 @@ final class SavedRestaurant {
     var state: String
     
     // Categories
-    var categories: [String] // Just store the titles
+    var categories: [String]
     
     // Timestamp when saved
     var savedAt: Date

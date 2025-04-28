@@ -51,11 +51,6 @@ class FoodsterService: FoodsterServiceProtocol {
         else {
             throw URLError(.badServerResponse)
         }
-            
-        if let jsonString = String(data: data, encoding: .utf8) {
-            print("Received JSON: \(jsonString)")
-        }
-            
         let decoder = JSONDecoder()
         return try decoder.decode(YelpResponse.self, from: data).businesses
     }
@@ -76,10 +71,6 @@ class FoodsterService: FoodsterServiceProtocol {
         ]
 
         let (data, _) = try await URLSession.shared.data(for: request)
-        if let jsonString = String(data: data, encoding: .utf8) {
-            print("Received JSON: \(jsonString)")
-        }
-        
         let decoder = JSONDecoder()
         let response = try decoder.decode(Restaurant.self, from: data)
         return response

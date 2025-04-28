@@ -136,7 +136,6 @@ struct FoodsterHomeView: View {
     
     private var loadingSection: some View {
         VStack {
-            // Enhanced skeleton loading to match search view style
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
                     ForEach(0 ..< 3) { _ in

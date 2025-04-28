@@ -46,7 +46,6 @@ class FoodsterViewModel: ObservableObject {
             if fetchedRestaurants.isEmpty {
                 errorMessage = "No restaurants found in this area"
             }
-            print(restaurants)
         } catch {
             restaurants = []
             errorMessage = "Search failed: \(error.localizedDescription)"
