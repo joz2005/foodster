@@ -52,9 +52,11 @@ struct FoodsterSavedView: View {
             .navigationTitle("Saved Restaurants")
             .overlay {
                 if savedRestaurants.isEmpty {
-                    ContentUnavailableView("No restaurants saved.",
-                                           systemImage: "bookmark.circle",
-                                           description: Text("Please save a restaurant to view it here."))
+                    ContentUnavailableView(
+                        "No restaurants saved.",
+                        systemImage: "bookmark.circle",
+                        description: Text("Please save a restaurant to view it here.")
+                    )
                 }
             }
         }

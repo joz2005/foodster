@@ -28,7 +28,18 @@ struct Restaurant: Codable, Identifiable {
     let attributes: Attributes?
     
     enum CodingKeys: String, CodingKey {
-        case id, alias, name, url, categories, coordinates, transactions, price, location, phone, distance, attributes
+        case id
+        case alias
+        case name
+        case url
+        case categories
+        case coordinates
+        case transactions
+        case price
+        case location
+        case phone
+        case distance
+        case attributes
         case imageUrl = "image_url"
         case isClosed = "is_closed"
         case reviewCount = "review_count"

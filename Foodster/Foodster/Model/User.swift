@@ -8,6 +8,4 @@
 class User {
     var longitude: String? = nil
     var latitude: String? = nil
-    
-    
 }

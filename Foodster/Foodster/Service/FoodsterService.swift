@@ -31,7 +31,7 @@ class FoodsterService: FoodsterServiceProtocol {
             URLQueryItem(name: "term", value: "restaurant \(term)"),
             URLQueryItem(name: "radius", value: "16093"),
             URLQueryItem(name: "sort_by", value: sortBy),
-            URLQueryItem(name: "limit", value: String(limit))
+            URLQueryItem(name: "limit", value: String(limit)),
         ]
             
         components.queryItems = components.queryItems.map { $0 + queryItems } ?? queryItems
@@ -41,7 +41,7 @@ class FoodsterService: FoodsterServiceProtocol {
         request.timeoutInterval = 10
         request.allHTTPHeaderFields = [
             "accept": "application/json",
-            "authorization": "Bearer \(apiKey)"
+            "authorization": "Bearer \(apiKey)",
         ]
 
         let (data, response) = try await URLSession.shared.data(for: request)
@@ -72,7 +72,7 @@ class FoodsterService: FoodsterServiceProtocol {
         request.timeoutInterval = 10
         request.allHTTPHeaderFields = [
             "accept": "application/json",
-            "authorization": "Bearer \(apiKey)"
+            "authorization": "Bearer \(apiKey)",
         ]
 
         let (data, _) = try await URLSession.shared.data(for: request)

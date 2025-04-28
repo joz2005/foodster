@@ -1,5 +1,5 @@
 //
-//  MainView.swift
+//  ContentView.swift
 //  Foodster
 //
 //  Created by Joseph Zheng on 4/11/25.

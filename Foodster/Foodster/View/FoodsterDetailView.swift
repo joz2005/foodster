@@ -15,7 +15,6 @@ struct RestaurantDetailView: View {
     let locationManager: LocationManager
     let vm: FoodsterViewModel
     
-
     @State private var showCopyAlert = false
     @State private var camera: MapCameraPosition = .automatic
 
@@ -47,12 +46,11 @@ struct RestaurantDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .background(Color(.systemGroupedBackground))
         .toolbar {
-            
             Button {
                 vm.toggleSaveRestaurant(restaurant: restaurant, in: modelContext)
             } label: {
                 Image(systemName: vm.savedRestaurants.contains(where: { $0.id == restaurant.id }) ? "bookmark.fill" : "bookmark")
-                    .font(.system(size: 24))
+                    .font(.system(size: 20))
                     .frame(width: 24, height: 24)
                     .contentShape(Rectangle())
             }
@@ -66,16 +64,16 @@ struct RestaurantDetailView: View {
                 ZStack(alignment: .bottomLeading) {
                     AsyncImage(url: url) { phase in
                         switch phase {
-                            case .empty:
-                                Color.gray.opacity(0.2)
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                            case .failure:
-                                Color.red.opacity(0.2)
-                            @unknown default:
-                                Color.gray.opacity(0.2)
+                        case .empty:
+                            Color.gray.opacity(0.2)
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFill()
+                        case .failure:
+                            Color.red.opacity(0.2)
+                        @unknown default:
+                            Color.gray.opacity(0.2)
                         }
                     }
                     .frame(height: 250)

@@ -1,5 +1,5 @@
 //
-//  FoodsterView.swift
+//  FoodsterSearchView.swift
 //  Foodster
 //
 //  Created by Joseph Zheng on 4/8/25.

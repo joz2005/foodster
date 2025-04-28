@@ -18,7 +18,12 @@ struct Location: Codable {
     let displayAddress: [String]
     
     enum CodingKeys: String, CodingKey {
-        case address1, address2, address3, city, country, state
+        case address1
+        case address2
+        case address3
+        case city
+        case country
+        case state
         case zipCode = "zip_code"
         case displayAddress = "display_address"
     }

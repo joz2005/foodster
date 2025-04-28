@@ -58,4 +58,3 @@ struct Attributes: Codable {
         case waitlistReservation = "waitlist_reservation"
     }
 }
-
