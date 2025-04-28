@@ -22,7 +22,7 @@ struct FoodsterSavedView: View {
                     let restaurant = savedRestaurant.toRestaurant()
                     HStack {
                         NavigationLink {
-                            RestaurantDetailView(restaurant: restaurant, locationManager: locationManager)
+                            RestaurantDetailView(restaurant: restaurant, locationManager: locationManager, vm: vm)
                         } label: {
                             HStack {
                                 RestaurantRow(restaurant: restaurant)

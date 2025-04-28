@@ -9,7 +9,7 @@ import SwiftUI
 
 struct RestaurantScrollView: View {
     let restaurant: Restaurant
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if let imageUrl = restaurant.imageUrl, let url = URL(string: imageUrl) {
@@ -54,12 +54,12 @@ struct RestaurantScrollView: View {
                     }
                     .clipShape(RoundedRectangle(cornerRadius: 8))
             }
-            
+
             VStack(alignment: .leading) {
                 Text(restaurant.name)
                     .font(.headline)
                     .lineLimit(1)
-                
+
                 HStack(spacing: 4) {
                     Image(systemName: "star.fill")
                         .foregroundColor(.yellow)

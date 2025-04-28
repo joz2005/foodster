@@ -10,8 +10,11 @@ import SwiftUI
 import UIKit
 
 struct RestaurantDetailView: View {
+    @Environment(\.modelContext) private var modelContext
     let restaurant: Restaurant
     let locationManager: LocationManager
+    let vm: FoodsterViewModel
+    
 
     @State private var showCopyAlert = false
     @State private var camera: MapCameraPosition = .automatic
@@ -43,6 +46,18 @@ struct RestaurantDetailView: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         .background(Color(.systemGroupedBackground))
+        .toolbar {
+            
+            Button {
+                vm.toggleSaveRestaurant(restaurant: restaurant, in: modelContext)
+            } label: {
+                Image(systemName: vm.savedRestaurants.contains(where: { $0.id == restaurant.id }) ? "bookmark.fill" : "bookmark")
+                    .font(.system(size: 24))
+                    .frame(width: 24, height: 24)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+        }
     }
     
     private var imageHeaderSection: some View {
@@ -152,9 +167,9 @@ struct RestaurantDetailView: View {
             Map(position: $camera) {
                 Marker(restaurant.name, systemImage: "fork.knife.circle.fill", coordinate: coordinates)
 
-                                    if locationManager.locationPermissionGranted {
-                                        Marker("You", systemImage: "person.fill", coordinate: locationManager.lastKnownLocation ?? coordinates)
-                                    }
+                if locationManager.locationPermissionGranted {
+                    Marker("You", systemImage: "person.fill", coordinate: locationManager.lastKnownLocation ?? coordinates)
+                }
             }
             .frame(height: 300)
             .cornerRadius(12)
@@ -199,7 +214,6 @@ private struct InfoCard: View {
         .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
     }
 }
-
 
 #Preview {
     @Previewable @State var vm = FoodsterViewModel()

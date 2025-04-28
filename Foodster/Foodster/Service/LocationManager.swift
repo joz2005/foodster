@@ -5,8 +5,8 @@
 //  Created by Joseph Zheng on 4/15/25.
 //
 
-import Foundation
 import CoreLocation
+import Foundation
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
@@ -54,10 +54,10 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-            guard let location = locations.last else { return }
+        guard let location = locations.last else { return }
             
-            lastKnownLocation = location.coordinate
-            locationUpdated = true
-            locationManager.stopUpdatingLocation()
-        }
+        lastKnownLocation = location.coordinate
+        locationUpdated = true
+        locationManager.stopUpdatingLocation()
+    }
 }

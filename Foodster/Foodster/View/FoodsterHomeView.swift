@@ -193,7 +193,7 @@ struct FoodsterHomeView: View {
                 LazyHStack(spacing: 16) {
                     ForEach(vm.popularRestaurants) { restaurant in
                         NavigationLink {
-                            RestaurantDetailView(restaurant: restaurant, locationManager: locationManager)
+                            RestaurantDetailView(restaurant: restaurant, locationManager: locationManager, vm: vm)
                         } label: {
                             RestaurantScrollView(restaurant: restaurant)
                                 .foregroundColor(.primary)
@@ -216,7 +216,7 @@ struct FoodsterHomeView: View {
             LazyVStack(alignment: .leading, spacing: 16) {
                 ForEach(vm.restaurants, id: \.id) { restaurant in
                     NavigationLink {
-                        RestaurantDetailView(restaurant: restaurant, locationManager: locationManager)
+                        RestaurantDetailView(restaurant: restaurant, locationManager: locationManager, vm: vm)
                     } label: {
                         HStack {
                             RestaurantRow(restaurant: restaurant)

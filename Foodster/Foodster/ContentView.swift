@@ -10,8 +10,8 @@ import SwiftUI
 struct ContentView: View {
     @State private var vm: FoodsterViewModel = .init()
     @State private var location: String = ""
-    @StateObject private var locationManager: LocationManager = LocationManager()
-    @State private var user: User = User()
+    @StateObject private var locationManager: LocationManager = .init()
+    @State private var user: User = .init()
     @State private var term: String = ""
     @State private var sortBy: String = "best_match"
     @State private var hasPerformedInitialFetch = false
@@ -23,7 +23,7 @@ struct ContentView: View {
                     Label("Home", systemImage: "house")
                 }
                 .environmentObject(locationManager)
-            
+
             FoodsterSearchView(vm: $vm, location: $location, term: $term, sortBy: $sortBy, user: $user, hasPerformedInitialFetch: $hasPerformedInitialFetch)
                 .tabItem {
                     Label("Search", systemImage: "magnifyingglass.circle")

@@ -137,7 +137,7 @@ struct FoodsterSearchView: View {
                 List(vm.restaurants, id: \.id) { restaurant in
                     HStack {
                         NavigationLink {
-                            RestaurantDetailView(restaurant: restaurant, locationManager: locationManager)
+                            RestaurantDetailView(restaurant: restaurant, locationManager: locationManager, vm: vm)
                         } label: {
                             HStack {
                                 RestaurantRow(restaurant: restaurant)
