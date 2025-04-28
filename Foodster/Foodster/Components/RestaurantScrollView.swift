@@ -42,7 +42,7 @@ struct RestaurantScrollView: View {
                     }
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 8))
-                .id("\(restaurant.id)-scroll-image") // Stable ID to maintain image across tab switches
+                .id("\(restaurant.id)-scroll-image")
             } else {
                 Rectangle()
                     .fill(Color.gray.opacity(0.3))

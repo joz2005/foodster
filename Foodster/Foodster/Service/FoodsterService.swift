@@ -18,7 +18,6 @@ class FoodsterService {
         var components = URLComponents(url: url, resolvingAgainstBaseURL: true)!
         var queryItems: [URLQueryItem] = []
             
-        // Handle location parameters
         if !location.isEmpty {
             queryItems.append(URLQueryItem(name: "location", value: location))
         } else {
@@ -26,7 +25,6 @@ class FoodsterService {
             queryItems.append(URLQueryItem(name: "longitude", value: longitude))
         }
 
-        // Add common parameters
         queryItems += [
             URLQueryItem(name: "term", value: "restaurant \(term)"),
             URLQueryItem(name: "radius", value: "16093"),

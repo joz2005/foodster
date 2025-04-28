@@ -83,7 +83,6 @@ final class SavedRestaurant {
         self.savedAt = savedAt
     }
     
-    // Convenience initializer to convert from Restaurant
     convenience init(from restaurant: Restaurant) {
         self.init(
             id: restaurant.id,
