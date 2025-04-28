@@ -7,7 +7,7 @@
 
 import Foundation
 
-class FoodsterService: FoodsterServiceProtocol {
+class FoodsterService {
     private let apiKey: String = "vy7UHTeiuFcvIDLDulXCXknqM2i-1Xk6Mu_LG0Ix-Ox-zVcDDQPBJtq-i7GfyIqSrMXAEGXHGF1fCwXFHWyIZtSLHeMYOTLN-UK25m0qyotUUliuwZQbXp8tuk_1Z3Yx"
     
     func getRestaurants(location: String, term: String, sortBy: String, attribute: String, limit: Int = 50, latitude: String? = "37.774722", longitude: String? = "-122.41823") async throws -> [Restaurant] {

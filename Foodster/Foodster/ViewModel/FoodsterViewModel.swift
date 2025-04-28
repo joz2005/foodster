@@ -7,10 +7,6 @@
 import Foundation
 import SwiftData
 
-func makeFoodsterViewModel(service: FoodsterServiceProtocol) -> (any ObservableObject)? {
-    return FoodsterViewModel(service: service)
-}
-
 @Observable
 class FoodsterViewModel: ObservableObject {
     var restaurants: [Restaurant] = []
@@ -120,9 +116,9 @@ class FoodsterViewModel: ObservableObject {
         isLoading = false
     }
     
-    let service: FoodsterServiceProtocol
+    let service: FoodsterService
     
-    required init(service: FoodsterServiceProtocol = FoodsterService()) {
+    required init(service: FoodsterService = FoodsterService()) {
         self.service = service
     }
 }
